@@ -91,8 +91,6 @@ pub(crate) fn standard_wasi_builder(paths: &PglitePaths) -> Result<WasiCtxBuilde
     let mut builder = WasiCtxBuilder::new();
     builder
         .inherit_stdin()
-        .inherit_stdout()
-        .inherit_stderr()
         .preopened_dir(pgroot_dir, DirPerms::all(), FilePerms::all(), "/tmp")
         .preopened_dir(
             pgdata_dir,
@@ -112,6 +110,12 @@ pub(crate) fn standard_wasi_builder(paths: &PglitePaths) -> Result<WasiCtxBuilde
         .env("TZ", "UTC")
         .env("PGTZ", "UTC")
         .env("PATH", "/tmp/pglite/bin");
+
+    let stdio_mode = std::env::var("PGLITE_WASI_STDIO").unwrap_or_default();
+    if matches!(stdio_mode.as_str(), "1" | "true" | "TRUE" | "True") {
+        builder.inherit_stdout().inherit_stderr();
+    }
+
     Ok(builder)
 }
 
